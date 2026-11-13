@@ -1,0 +1,30 @@
+<div class="card-groups">
+  <header id="edocument-downloads-header">
+    <div>
+      <h1 class="icon-users" data-i18n>{LNG_Recipient}-{LNG_Download history}</h1>
+      <p translate="no"><span data-text="options.document ? options.document.document_no : ''"></span> <span
+              data-text="options.document ? options.document.topic : ''"></span></p>
+    </div>
+    <div>
+      <a class="btn icon-outbox" href="/edocument-sent" data-i18n>{LNG_Sent document}</a>
+    </div>
+  </header>
+  <div class="content-body">
+    <div class="tablebody">
+      <table class="table border fullwidth" data-table="edocumentDownloads" data-source="api/edocument/downloads" data-default-sort="last_update desc"
+             data-page-size="25" data-load-query-params="true" data-load-target="#edocument-downloads-header" data-search-columns="name,username">
+        <thead>
+          <tr>
+            <th data-field="name" data-sort="name" data-i18n>{LNG_Name}</th>
+            <th data-field="username" data-sort="username" data-i18n>{LNG_Email}</th>
+            <th data-field="department" data-sort="department_id" data-i18n>{LNG_Department}</th>
+            <th data-field="date" data-sort="last_update" class="center" data-cell-class="center nowrap" data-format="datetime" data-empty-text="-"
+                data-i18n>{LNG_Date}</th>
+            <th data-field="downloads" data-sort="downloads" class="center" data-cell-class="center" data-i18n>{LNG_Download}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>

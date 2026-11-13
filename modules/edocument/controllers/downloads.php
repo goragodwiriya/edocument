@@ -1,0 +1,119 @@
+<?php
+/**
+ * @filesource modules/edocument/controllers/downloads.php
+ *
+ * @copyright 2026 Goragod.com
+ * @license https://www.kotchasan.com/license/
+ *
+ * @see https://www.kotchasan.com/
+ */
+
+namespace Edocument\Downloads;
+
+use Gcms\Api as ApiController;
+use Kotchasan\Http\Request;
+
+/**
+ * api/edocument/downloads?id= — ผู้รับ-ประวัติการดาวน์โหลดของเอกสารหนึ่งฉบับ
+ * (module=edocument-report ของระบบเดิม) ผู้ส่งหรือผู้จัดการงานสารบรรณเท่านั้น
+ *
+ * @author Goragod Wiriya <admin@goragod.com>
+ *
+ * @since 1.0
+ */
+class Controller extends \Gcms\Table
+{
+    /**
+     * @var array
+     */
+    protected $allowedSortColumns = ['name', 'username', 'department_id', 'last_update', 'downloads'];
+
+    /**
+     * เอกสารที่กำลังดู
+     *
+     * @var object|null
+     */
+    protected $document = null;
+
+    /**
+     * @param Request $request
+     * @param object $login
+     *
+     * @return mixed
+     */
+    protected function checkAuthorization(Request $request, $login)
+    {
+        if (!ApiController::hasPermission($login, 'can_upload_edocument')) {
+            return $this->errorResponse('Permission required', 403);
+        }
+        $this->document = \Edocument\Document\Model::get($request->get('id')->toInt());
+        if (!$this->document) {
+            return $this->errorResponse('Sorry, Item not found It&#39;s may be deleted', 404);
+        }
+        if (!\Edocument\Document\Model::canManage($login, $this->document)) {
+            return $this->errorResponse('Permission required', 403);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param Request $request
+     * @param object $login
+     *
+     * @return array
+     */
+    protected function getCustomParams(Request $request, $login): array
+    {
+        return ['id' => $this->document ? (int) $this->document->id : 0];
+    }
+
+    /**
+     * @param array $params
+     * @param object $login
+     *
+     * @return \Kotchasan\QueryBuilder\QueryBuilderInterface
+     */
+    protected function toDataTable(array $params, $login)
+    {
+        return Model::toDataTable($params);
+    }
+
+    /**
+     * @param array $datas
+     * @param object|null $login
+     *
+     * @return array
+     */
+    protected function formatDatas(array $datas, $login = null): array
+    {
+        $category = \Gcms\Category::init();
+        foreach ($datas as $item) {
+            $item->department = (string) $item->department_id === '' ? '' : $category->get('department', $item->department_id);
+            // ยังไม่เคยดาวน์โหลด = ว่าง (ระบบเดิม)
+            $item->date = empty($item->last_update) ? null : date('Y-m-d H:i:s', (int) $item->last_update);
+            $item->downloads = (int) $item->downloads;
+        }
+
+        return $datas;
+    }
+
+    /**
+     * เอกสารที่กำลังดู (หัวของหน้า) และชื่อหมวดแผนก
+     *
+     * @param array $params
+     * @param object $login
+     *
+     * @return array
+     */
+    protected function getOptions(array $params, $login)
+    {
+        return [
+            'document' => $this->document ? [
+                'id' => (int) $this->document->id,
+                'document_no' => $this->document->document_no,
+                'topic' => $this->document->topic
+            ] : null
+        ];
+    }
+}
